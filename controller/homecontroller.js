@@ -74,3 +74,75 @@ module.exports.createTodo = function (req, res) {
             // Handle the error if needed
         });
 };
+
+module.exports.deleteTodo = async function (req, res) {
+    try {
+        sp = req.query.id; // getting the id from UI
+        newsp = sp.split(',');
+
+        // Create an array of promises to delete each item
+        const deletePromises = newsp.map(id => {
+            return TodoLists.findByIdAndDelete(id);
+        });
+
+        // Wait for all delete operations to complete
+        await Promise.all(deletePromises);
+
+        res.redirect('/');
+    } catch (err) {
+        console.log('Error occurred', err);
+        // Handle the error if needed
+        res.redirect('/');
+    }
+};
+
+// Assuming you have already defined the TodoLists model.
+
+module.exports.EditPage = function (req, res) {
+    console.log('aaa', req.query);
+
+    // Creating a promise for TodoLists.findById
+    const findByIdPromise = TodoLists.findById(req.query.id).exec();
+
+    // Handling the promise
+    findByIdPromise
+        .then((todoLists) => {
+            if (!todoLists) {
+                console.log('Data not found');
+                return res.status(404).send('Data not found.');
+            }
+
+            return res.render('editPage', {
+                title: 'Edit Page',
+                todolist: todoLists
+            });
+        })
+        .catch((err) => {
+            console.log('Error while fetching data:', err);
+            return res.status(500).send('An error occurred while fetching data for editing.');
+        });
+};
+
+
+
+
+
+// function for updatind tada after the todo is being edited
+
+module.exports.editDetails = async function (req, res) {
+    try {
+        const dueDate = req.body.dueDate.split('-'); // splitting date and taking month value
+        const newdate = DateValeu(dueDate); // Assuming DateValue is a function to create a Date object from the given date array
+
+        // Using async/await with TodoLists.updateOne
+        await TodoLists.updateOne(
+            { _id: req.query.id },
+            { $set: { desc: req.body.desc, category: req.body.category, dueDate: newdate } }
+        );
+
+        return res.redirect('/');
+    } catch (err) {
+        console.log('Error while updating:', err);
+        return res.status(500).send('An error occurred while updating the details.');
+    }
+};
