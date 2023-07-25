@@ -24,6 +24,7 @@ $(document).ready(function(){
         }
     }
 });
+
 //this in responsibe for making cross line when the item is checked for deleting
 
 function checkedOrNot(){
